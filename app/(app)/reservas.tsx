@@ -114,7 +114,11 @@ export default function ReservasScreen() {
     <View style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.topTitulo}>Minhas Reservas</Text>
-        <TouchableOpacity style={styles.novaBotao} onPress={() => setModalOpen(true)}>
+        <TouchableOpacity
+          style={[styles.novaBotao, loading && { opacity: 0.5 }]}
+          onPress={() => setModalOpen(true)}
+          disabled={loading}
+        >
           <Ionicons name="add" size={18} color="#fff" />
           <Text style={styles.novaBotaoTexto}>Nova Reserva</Text>
         </TouchableOpacity>
@@ -144,7 +148,9 @@ export default function ReservasScreen() {
             <Text style={styles.modalTitulo}>Nova Reserva</Text>
 
             <Text style={styles.label}>Espaço comum</Text>
-            {espacos.length === 0
+            {loading
+              ? <ActivityIndicator color={COLORS.terracota} style={{ marginBottom: 14 }} />
+              : espacos.length === 0
               ? <Text style={styles.semEspacos}>Nenhum espaço cadastrado no condomínio ainda.</Text>
               : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
@@ -165,6 +171,7 @@ export default function ReservasScreen() {
               )}
 
             <Text style={styles.label}>Data</Text>
+
             <TextInput style={styles.input} placeholder="AAAA-MM-DD" placeholderTextColor="#BBB" value={data} onChangeText={setData} />
 
             <View style={styles.row}>

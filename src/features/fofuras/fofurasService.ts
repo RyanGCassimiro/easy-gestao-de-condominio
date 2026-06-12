@@ -15,23 +15,25 @@ export const fofurasService = {
 
   async cadastrar(input: PetInput, fotoUri?: string) {
     let imagemUrl = input.imagemUrl;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
 
     if (fotoUri) {
-      const uid = (await supabase.auth.getUser()).data.user!.id;
-      imagemUrl = await uploadImagem('pets', `${uid}/${Date.now()}.jpg`, fotoUri, 'image/jpeg');
+      imagemUrl = await uploadImagem('pets', `${user.id}/${Date.now()}.jpg`, fotoUri, 'image/jpeg');
     }
 
     const { data, error } = await supabase
       .from('dependente')
       .insert({
-        nome:                  input.nome,
-        raca:                  input.raca,
-        especie:               input.especie,
-        imagem_url:            imagemUrl,
-        data_nasc:             input.dataNasc,
-        observacao:            input.observacao,
-        tipo:                  'pet',
-        consentimento_lgpd:    true,
+        id_usuario:         user.id,
+        nome:               input.nome,
+        raca:               input.raca,
+        especie:            input.especie,
+        imagem_url:         imagemUrl,
+        data_nasc:          input.dataNasc,
+        observacao:         input.observacao,
+        tipo:               'pet',
+        consentimento_lgpd: true,
       })
       .select()
       .single();

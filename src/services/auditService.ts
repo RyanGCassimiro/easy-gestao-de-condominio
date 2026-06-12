@@ -4,7 +4,7 @@ type AuditEntry = {
   acao:        string;
   entidade:    string;
   id_entidade?: string;
-  detalhes?:   Record<string, unknown>;
+  detalhes?:   Record<string, string | number | boolean | null>;
 };
 
 export async function registrarAudit(entry: AuditEntry): Promise<void> {

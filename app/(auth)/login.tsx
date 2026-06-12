@@ -1,20 +1,26 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Switch,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  StyleSheet, ActivityIndicator, KeyboardAvoidingView,
+  Platform, ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { loginSchema } from '../../src/features/auth/authSchemas';
 import { authService } from '../../src/features/auth/authService';
+import { COLORS, RADIUS } from '../../src/constants/theme';
+
+type Perfil = 'morador' | 'comerciante';
 
 export default function LoginScreen() {
-  const [perfil,     setPerfil]     = useState<'morador' | 'comerciante'>('morador');
+  const [perfil,     setPerfil]     = useState<Perfil>('morador');
   const [email,      setEmail]      = useState('');
   const [senha,      setSenha]      = useState('');
   const [lembrar,    setLembrar]    = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro,       setErro]       = useState<string | null>(null);
+
+  const cor = perfil === 'morador' ? COLORS.terracota : COLORS.azulWanessa;
 
   async function handleLogin() {
     setErro(null);
@@ -37,83 +43,109 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.wrapper}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.titulo}>EASY CORE</Text>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
-      <View style={styles.toggle}>
+        <Text style={[styles.logo, { color: cor }]}>Easy</Text>
+        <Text style={[styles.tagline, { color: cor }]}>
+          nunca foi tão fácil se conectar com pessoas
+        </Text>
+
+        <View style={styles.toggle}>
+          {(['morador', 'comerciante'] as Perfil[]).map(p => (
+            <TouchableOpacity
+              key={p}
+              style={[
+                styles.toggleBtn,
+                perfil === p && { backgroundColor: p === 'morador' ? COLORS.terracota : COLORS.azulWanessa },
+              ]}
+              onPress={() => setPerfil(p)}
+            >
+              <Text style={[styles.toggleTexto, perfil === p && styles.toggleTextoAtivo]}>
+                {p === 'morador' ? 'Morador' : 'Comércio'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.label}>E-mail</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="nome@exemplo.com"
+          placeholderTextColor="#BBB"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
+
+        <Text style={styles.label}>Senha</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#BBB"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+        />
+
+        {erro && <Text style={styles.erro}>{erro}</Text>}
+
         <TouchableOpacity
-          style={[styles.toggleBtn, perfil === 'morador' && styles.toggleAtivo]}
-          onPress={() => setPerfil('morador')}
+          style={[styles.botao, { backgroundColor: cor }]}
+          onPress={handleLogin}
+          disabled={carregando}
         >
-          <Text style={perfil === 'morador' ? styles.toggleTextoAtivo : styles.toggleTexto}>
-            Morador
+          {carregando
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.botaoTexto}>Entrar</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+          <Text style={[styles.link, { color: cor }]}>Esqueci minha senha</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+          <Text style={[styles.link, { color: cor }]}>
+            Não possui conta? <Text style={{ fontWeight: 'bold' }}>Criar Conta!</Text>
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.toggleBtn, perfil === 'comerciante' && styles.toggleAtivo]}
-          onPress={() => setPerfil('comerciante')}
-        >
-          <Text style={perfil === 'comerciante' ? styles.toggleTextoAtivo : styles.toggleTexto}>
-            Comércio
-          </Text>
-        </TouchableOpacity>
-      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={senha}
-        onChangeText={setSenha}
-        secureTextEntry
-      />
+        <View style={styles.lembrarRow}>
+          <Switch
+            value={lembrar}
+            onValueChange={setLembrar}
+            trackColor={{ true: cor }}
+            thumbColor="#fff"
+          />
+          <Text style={styles.lembrarTexto}>Lembrar-me</Text>
+        </View>
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
-
-      <TouchableOpacity style={styles.botao} onPress={handleLogin} disabled={carregando}>
-        {carregando
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.botaoTexto}>Entrar</Text>}
-      </TouchableOpacity>
-
-      <View style={styles.lembrarRow}>
-        <Switch value={lembrar} onValueChange={setLembrar} />
-        <Text style={styles.lembrarTexto}>Lembrar-me</Text>
-      </View>
-
-      <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
-        <Text style={styles.link}>Esqueci minha senha</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-        <Text style={styles.link}>Não possui conta? Criar Conta!</Text>
-      </TouchableOpacity>
+        <Text style={styles.footer}>Easy 2026</Text>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#FAF7F4' },
-  titulo:          { fontSize: 28, fontWeight: 'bold', color: '#8B4513', textAlign: 'center', marginBottom: 32 },
-  toggle:          { flexDirection: 'row', backgroundColor: '#EDE0D4', borderRadius: 8, marginBottom: 24 },
-  toggleBtn:       { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
-  toggleAtivo:     { backgroundColor: '#8B4513' },
-  toggleTexto:     { color: '#8B4513', fontWeight: '600' },
-  toggleTextoAtivo: { color: '#fff', fontWeight: '600' },
-  input:           { borderWidth: 1, borderColor: '#D4A990', borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: '#fff' },
-  erro:            { color: '#C0392B', marginBottom: 8, textAlign: 'center' },
-  botao:           { backgroundColor: '#8B4513', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 12 },
-  botaoTexto:      { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  lembrarRow:      { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  lembrarTexto:    { marginLeft: 8, color: '#555' },
-  link:            { color: '#8B4513', textAlign: 'center', marginTop: 8, textDecorationLine: 'underline' },
+  wrapper:          { flex: 1, backgroundColor: COLORS.background },
+  container:        { flexGrow: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 32 },
+  logo:             { fontSize: 40, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
+  tagline:          { fontSize: 13, textAlign: 'center', marginBottom: 32 },
+  toggle:           { flexDirection: 'row', backgroundColor: COLORS.toggleBg, borderRadius: RADIUS.pill, padding: 4, marginBottom: 28 },
+  toggleBtn:        { flex: 1, paddingVertical: 10, borderRadius: RADIUS.pill, alignItems: 'center' },
+  toggleTexto:      { color: COLORS.terracota, fontWeight: '600', fontSize: 14 },
+  toggleTextoAtivo: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  label:            { fontSize: 13, color: COLORS.textSecondary, marginBottom: 4, marginLeft: 2 },
+  input:            { borderWidth: 1, borderColor: COLORS.inputBorder, borderRadius: RADIUS.sm, padding: 13, marginBottom: 16, backgroundColor: COLORS.card, fontSize: 14, color: COLORS.textPrimary },
+  erro:             { color: COLORS.error, marginBottom: 10, textAlign: 'center', fontSize: 13 },
+  botao:            { borderRadius: RADIUS.pill, paddingVertical: 15, alignItems: 'center', marginBottom: 16, marginTop: 4 },
+  botaoTexto:       { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  link:             { textAlign: 'center', marginTop: 8, fontSize: 13 },
+  lembrarRow:       { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 8 },
+  lembrarTexto:     { color: COLORS.textSecondary, fontSize: 13 },
+  footer:           { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, marginTop: 40 },
 });

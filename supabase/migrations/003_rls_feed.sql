@@ -2,22 +2,26 @@
 ALTER TABLE postagem ENABLE ROW LEVEL SECURITY;
 ALTER TABLE curtida  ENABLE ROW LEVEL SECURITY;
 
--- Todos os autenticados leem posts (filtro +18 feito na query, não no RLS)
+DROP POLICY IF EXISTS postagem_select ON postagem;
+DROP POLICY IF EXISTS postagem_insert ON postagem;
+DROP POLICY IF EXISTS postagem_update ON postagem;
+DROP POLICY IF EXISTS postagem_delete ON postagem;
+DROP POLICY IF EXISTS curtida_select  ON curtida;
+DROP POLICY IF EXISTS curtida_insert  ON curtida;
+DROP POLICY IF EXISTS curtida_delete  ON curtida;
+
 CREATE POLICY postagem_select ON postagem
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
--- Comerciante só insere como ele mesmo
 CREATE POLICY postagem_insert ON postagem
   FOR INSERT WITH CHECK (id_autor = auth.uid());
 
--- Comerciante só edita/remove o próprio post
 CREATE POLICY postagem_update ON postagem
   FOR UPDATE USING (id_autor = auth.uid());
 
 CREATE POLICY postagem_delete ON postagem
   FOR DELETE USING (id_autor = auth.uid());
 
--- Curtida: cada usuário gerencia as próprias
 CREATE POLICY curtida_select ON curtida
   FOR SELECT USING (auth.uid() IS NOT NULL);
 

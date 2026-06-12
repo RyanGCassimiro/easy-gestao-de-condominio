@@ -13,9 +13,12 @@ export const reservasService = {
   },
 
   async criar(input: ReservaInput) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
     const { data, error } = await supabase
       .from('reserva')
       .insert({
+        id_usuario:  user.id,
         id_espaco:   input.idEspaco,
         data:        input.data,
         hora_inicio: input.horaInicio,

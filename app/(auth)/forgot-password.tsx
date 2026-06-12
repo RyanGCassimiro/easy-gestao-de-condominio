@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  StyleSheet, ActivityIndicator, KeyboardAvoidingView,
+  Platform, ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { forgotPasswordSchema } from '../../src/features/auth/authSchemas';
 import { authService } from '../../src/features/auth/authService';
+import { COLORS, RADIUS } from '../../src/constants/theme';
 
 export default function ForgotPasswordScreen() {
   const [email,      setEmail]      = useState('');
@@ -33,61 +35,83 @@ export default function ForgotPasswordScreen() {
 
   if (enviado) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.titulo}>E-mail enviado!</Text>
-        <Text style={styles.subtitulo}>
-          Verifique sua caixa de entrada e siga as instruções para redefinir a senha.
-          O link expira em 1 hora.
-        </Text>
-        <TouchableOpacity style={styles.botao} onPress={() => router.replace('/(auth)/login')}>
-          <Text style={styles.botaoTexto}>Voltar ao Login</Text>
-        </TouchableOpacity>
+      <View style={styles.wrapper}>
+        <View style={styles.container}>
+          <Text style={styles.logo}>Easy</Text>
+          <Text style={styles.titulo}>E-mail enviado!</Text>
+          <Text style={styles.subtitulo}>
+            Verifique sua caixa de entrada e siga as instruções para redefinir a senha.
+          </Text>
+          <TouchableOpacity style={styles.botao} onPress={() => router.replace('/(auth)/login')}>
+            <Text style={styles.botaoTexto}>Voltar ao Login</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.wrapper}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.titulo}>Recuperar Senha</Text>
-      <Text style={styles.subtitulo}>
-        Informe seu e-mail cadastrado. Enviaremos um link para redefinir sua senha.
-      </Text>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-      />
+        <Text style={styles.logo}>Easy</Text>
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
+        <Text style={styles.titulo}>Esqueceu sua senha?</Text>
+        <Text style={styles.subtitulo}>
+          Não esqueça!{'\n'}Nós estamos aqui para te ajudar.
+        </Text>
 
-      <TouchableOpacity style={styles.botao} onPress={handleEnviar} disabled={carregando}>
-        {carregando
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.botaoTexto}>Enviar Link</Text>}
-      </TouchableOpacity>
+        <Text style={styles.instrucao}>
+          Insira o seu endereço de e-mail e lhe enviaremos instruções para redefinir sua senha.
+        </Text>
 
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.link}>Voltar ao Login</Text>
-      </TouchableOpacity>
+        <Text style={styles.label}>E-mail</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="nome@exemplo.com"
+          placeholderTextColor="#BBB"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
+
+        {erro && <Text style={styles.erro}>{erro}</Text>}
+
+        <TouchableOpacity style={styles.botao} onPress={handleEnviar} disabled={carregando}>
+          {carregando
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.botaoTexto}>Enviar</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>
+            Já possui uma conta? <Text style={{ fontWeight: 'bold' }}>Fazer Login!</Text>
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.footer}>Easy 2026</Text>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#FAF7F4' },
-  titulo:     { fontSize: 24, fontWeight: 'bold', color: '#8B4513', textAlign: 'center', marginBottom: 12 },
-  subtitulo:  { color: '#666', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
-  input:      { borderWidth: 1, borderColor: '#D4A990', borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: '#fff' },
-  erro:       { color: '#C0392B', marginBottom: 8, textAlign: 'center' },
-  botao:      { backgroundColor: '#8B4513', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 12 },
+  wrapper:    { flex: 1, backgroundColor: COLORS.background },
+  container:  { flexGrow: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 32 },
+  logo:       { fontSize: 40, fontWeight: 'bold', textAlign: 'center', color: COLORS.terracota, marginBottom: 24 },
+  titulo:     { fontSize: 18, fontWeight: 'bold', color: COLORS.terracota, textAlign: 'center', marginBottom: 4 },
+  subtitulo:  { fontSize: 14, color: COLORS.terracota, textAlign: 'center', marginBottom: 20, lineHeight: 20 },
+  instrucao:  { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
+  label:      { fontSize: 13, color: COLORS.textSecondary, marginBottom: 4, marginLeft: 2 },
+  input:      { borderWidth: 1, borderColor: COLORS.inputBorder, borderRadius: RADIUS.sm, padding: 13, marginBottom: 20, backgroundColor: COLORS.card, fontSize: 14, color: COLORS.textPrimary },
+  erro:       { color: COLORS.error, marginBottom: 10, textAlign: 'center', fontSize: 13 },
+  botao:      { backgroundColor: COLORS.terracota, borderRadius: RADIUS.pill, paddingVertical: 15, alignItems: 'center', marginBottom: 16 },
   botaoTexto: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  link:       { color: '#8B4513', textAlign: 'center', marginTop: 8, textDecorationLine: 'underline' },
+  link:       { textAlign: 'center', color: COLORS.terracota, fontSize: 13, marginTop: 8 },
+  footer:     { textAlign: 'center', color: COLORS.textMuted, fontSize: 11, marginTop: 40 },
 });

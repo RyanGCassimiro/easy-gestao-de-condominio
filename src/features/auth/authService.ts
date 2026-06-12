@@ -47,7 +47,7 @@ export const authService = {
     const { error: moradorError } = await supabase.from('morador').insert({
       id_usuario: uid,
       nome:       input.nome,
-      cpf_hash:   hashCPF(input.cpf, CPF_SALT),
+      cpf_hash:   await hashCPF(input.cpf, CPF_SALT),
       unidade:    input.unidade,
       bloco:      input.bloco,
     });

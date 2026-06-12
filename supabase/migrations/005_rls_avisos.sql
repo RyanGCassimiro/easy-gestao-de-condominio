@@ -1,50 +1,34 @@
 -- T07: RLS das tabelas aviso e visualiza_aviso
-ALTER TABLE aviso          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE aviso           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visualiza_aviso ENABLE ROW LEVEL SECURITY;
 
--- Função auxiliar: retorna o id_condominio do usuário logado
-CREATE OR REPLACE FUNCTION auth_condominio()
-RETURNS INT AS $$
-  SELECT id_condominio
-    FROM morador_unidade
-   WHERE id_usuario = auth.uid()
-   LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+DROP POLICY IF EXISTS aviso_select          ON aviso;
+DROP POLICY IF EXISTS aviso_sindico_insert  ON aviso;
+DROP POLICY IF EXISTS aviso_sindico_update  ON aviso;
+DROP POLICY IF EXISTS aviso_sindico_delete  ON aviso;
+DROP POLICY IF EXISTS visualiza_select      ON visualiza_aviso;
+DROP POLICY IF EXISTS visualiza_insert      ON visualiza_aviso;
 
--- Morador lê avisos do próprio condomínio
-CREATE POLICY aviso_morador_select ON aviso
-  FOR SELECT USING (id_condominio = auth_condominio());
+CREATE POLICY aviso_select ON aviso
+  FOR SELECT USING (auth.uid() IS NOT NULL);
 
--- Síndico publica avisos
 CREATE POLICY aviso_sindico_insert ON aviso
   FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM usuario
-       WHERE id_usuario = auth.uid()
-         AND perfil = 'sindico'
-    )
+    EXISTS (SELECT 1 FROM usuario WHERE id_usuario = auth.uid() AND perfil = 'sindico')
   );
 
--- Síndico edita/remove os próprios avisos
 CREATE POLICY aviso_sindico_update ON aviso
-  FOR UPDATE USING (id_autor = auth.uid());
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM usuario WHERE id_usuario = auth.uid() AND perfil = 'sindico')
+  );
 
 CREATE POLICY aviso_sindico_delete ON aviso
-  FOR DELETE USING (id_autor = auth.uid());
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM usuario WHERE id_usuario = auth.uid() AND perfil = 'sindico')
+  );
 
--- Morador registra leitura
+CREATE POLICY visualiza_select ON visualiza_aviso
+  FOR SELECT USING (id_usuario = auth.uid());
+
 CREATE POLICY visualiza_insert ON visualiza_aviso
   FOR INSERT WITH CHECK (id_usuario = auth.uid());
-
--- Trigger: grava leitura automaticamente ao marcar lido
-CREATE OR REPLACE FUNCTION registrar_visualizacao()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.data_hora := NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER tg_visualiza_aviso
-  BEFORE INSERT ON visualiza_aviso
-  FOR EACH ROW EXECUTE FUNCTION registrar_visualizacao();

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as Crypto from 'expo-crypto';
 
 export function validarCPF(cpf: string): boolean {
   const digits = cpf.replace(/\D/g, '');
@@ -14,7 +14,7 @@ export function validarCPF(cpf: string): boolean {
   return calc(9) === parseInt(digits[9]) && calc(10) === parseInt(digits[10]);
 }
 
-export function hashCPF(cpf: string, salt: string): string {
+export async function hashCPF(cpf: string, salt: string): Promise<string> {
   const digits = cpf.replace(/\D/g, '');
-  return crypto.createHash('sha256').update(digits + salt).digest('hex');
+  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, digits + salt);
 }

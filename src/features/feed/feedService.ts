@@ -25,9 +25,12 @@ export const feedService = {
     const { data, error } = await supabase
       .from('postagem')
       .insert({
-        ...input,
-        conteudo: sanitizeFreeText(input.conteudo),
-        titulo:   sanitizeFreeText(input.titulo),
+        titulo:        sanitizeFreeText(input.titulo),
+        conteudo:      sanitizeFreeText(input.conteudo),
+        categorias:    input.categorias,
+        is_maior18:    input.isMaior18,
+        imagem_url:    input.imagemUrl ?? null,
+        whatsapp_url:  input.whatsappUrl ?? null,
       })
       .select()
       .single();

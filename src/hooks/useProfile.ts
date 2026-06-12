@@ -30,7 +30,7 @@ export function useProfile() {
           setProfile({
             id_usuario: data.id_usuario,
             perfil:     data.perfil as Profile['perfil'],
-            foto_url:   data.foto_url,
+            foto_url:   data.foto_url ?? undefined,
             nome:       m?.nome,
             unidade:    m?.unidade,
             bloco:      m?.bloco,
